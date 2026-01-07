@@ -45,6 +45,11 @@ def load_data():
     return pd.read_csv(csv_path)
 
 df = load_data()
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.subheader("Dataset Preview")
+st.dataframe(df.head())
+st.markdown('</div>', unsafe_allow_html=True)
+
 
 # ---------------- PREPROCESSING ----------------
 df.drop("customerID", axis=1, inplace=True)
@@ -154,4 +159,5 @@ st.markdown(
 )
 
 st.markdown('</div>', unsafe_allow_html=True)
+
 
