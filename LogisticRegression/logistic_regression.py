@@ -2,27 +2,35 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import *
-import seaborn as sns
+from sklearn.metrics import (
+    confusion_matrix,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score
+)
 
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config("Telco Customer Churn", layout="centered")
 
-# Load CSS
-import os
-
+# ---------------- LOAD CSS ----------------
 BASE_DIR = os.path.dirname(__file__)
 CSS_PATH = os.path.join(BASE_DIR, "style.css")
 
 def load_css(path):
-    with open(path) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    if os.path.exists(path):
+        with open(path) as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 load_css(CSS_PATH)
 
-# Title
+# ---------------- TITLE ----------------
 st.markdown("""
 <div class="card">
     <h1>TELCO CUSTOMER CHURN PREDICTION</h1>
@@ -30,47 +38,44 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Load dataset
+# ---------------- LOAD DATA ----------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("Telco-Customer-Churn.csv")
+    csv_path = os.path.join(BASE_DIR, "Telco-Customer-Churn.csv")
+    return pd.read_csv(csv_path)
 
 df = load_data()
 
-# Dataset preview
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.subheader("Dataset Preview")
-st.dataframe(df.head())
-st.markdown('</div>', unsafe_allow_html=True)
-
-# Preprocessing
+# ---------------- PREPROCESSING ----------------
 df.drop("customerID", axis=1, inplace=True)
+
 yes_no_cols = df.select_dtypes(include="object").columns
 df[yes_no_cols] = df[yes_no_cols].replace({"Yes": 1, "No": 0})
+
 df = pd.get_dummies(df, drop_first=True)
 
-# Features & target
+# ---------------- FEATURES & TARGET ----------------
 X = df.drop("Churn", axis=1)
 y = df["Churn"]
 
-# Train-test split
+# ---------------- TRAIN TEST SPLIT ----------------
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.25, random_state=42
 )
 
-# Scaling
+# ---------------- SCALING ----------------
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# Train model
+# ---------------- MODEL ----------------
 model = LogisticRegression(max_iter=1000)
 model.fit(X_train, y_train)
 
-# Predictions
+# ---------------- PREDICTIONS ----------------
 y_pred = model.predict(X_test)
 
-# Task 7: Confusion Matrix Analysis
+# ---------------- TASK 7: CONFUSION MATRIX ----------------
 cm = confusion_matrix(y_test, y_pred)
 tn, fp, fn, tp = cm.ravel()
 
@@ -90,25 +95,22 @@ sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
 ax.set_xlabel("Predicted")
 ax.set_ylabel("Actual")
 st.pyplot(fig)
+
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Task 8: Business Interpretation
+# ---------------- TASK 8: BUSINESS INTERPRETATION ----------------
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.subheader("Business Interpretation")
 st.write(f"- Wrongly flagged loyal customers as churn: **{fp}**")
 st.write(f"- Missed customers who actually churned: **{fn}**")
 st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True)
-# METRICS
+# ---------------- PERFORMANCE METRICS ----------------
 accuracy = accuracy_score(y_test, y_pred)
 precision = precision_score(y_test, y_pred)
 recall = recall_score(y_test, y_pred)
 f1 = f1_score(y_test, y_pred)
 
-
-
-# PERFORMANCE METRICS
 with st.container(border=True):
     st.subheader("Model Performance Metrics")
     c1, c2 = st.columns(2)
@@ -118,7 +120,7 @@ with st.container(border=True):
     c3.metric("Recall", f"{recall:.2f}")
     c4.metric("F1 Score", f"{f1:.2f}")
 
-# PREDICTION SECTION
+# ---------------- PREDICTION SECTION ----------------
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.subheader("Predict Customer Churn")
 
@@ -136,6 +138,7 @@ tenure = st.slider(
     12
 )
 
+# Create input row using mean values
 input_data = X.mean().to_frame().T
 input_data["MonthlyCharges"] = monthly_charges
 input_data["tenure"] = tenure
@@ -151,5 +154,4 @@ st.markdown(
 )
 
 st.markdown('</div>', unsafe_allow_html=True)
-
 
