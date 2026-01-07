@@ -11,11 +11,16 @@ import seaborn as sns
 st.set_page_config("Telco Customer Churn", layout="centered")
 
 # Load CSS
-def load_css(file):
-    with open(file) as f:
+import os
+
+BASE_DIR = os.path.dirname(__file__)
+CSS_PATH = os.path.join(BASE_DIR, "style.css")
+
+def load_css(path):
+    with open(path) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-load_css("style.css")
+load_css(CSS_PATH)
 
 # Title
 st.markdown("""
@@ -146,3 +151,4 @@ st.markdown(
 )
 
 st.markdown('</div>', unsafe_allow_html=True)
+
